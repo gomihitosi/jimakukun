@@ -19,15 +19,18 @@
 <body>
   <div id="app">
     <div id="vue-container" v-cloak>
-      <div class="controller-container">
-        <button id="start-btn" @click="start">start</button>
-        <button id="stop-btn" @click="stop">stop</button>
-        <span>{{ isRecording ? '動作中' : '停止中' }}</span>
+      <div class="headder-container">
+        <div class="controller-group">
+          <button id="start-btn" @click="start">start</button>
+          <button id="stop-btn" @click="stop">stop</button>
+          <span class="status-box">{{ isRecording ? '動作中' : '停止中' }}</span>
+        </div>
+        <div class="title-box">字幕クン</div>
       </div>
       <div class="svg-container" ref="svgContainer" :style="{backgroundColor: settings[loginUser.id].backgroundColor}">
         <transition-group tag="div" class="svg-transition" name="sub-fade">
           <div class="svg-group" v-for="sub in subs" v-if="!sub.isDelete" :key="sub.key" :style="{
-              width: settings[sub.id].svgGroupWidth + '%',
+              maxWidth: settings[sub.id].svgGroupWidth + '%',
               flexDirection: settings[sub.id].isBeforeColumn ? 'column' : 'row',
               marginBottom: settings[sub.id].svgGroupBottomMargin + 'px',
             }">
@@ -42,7 +45,7 @@
       <div class="input-container">
         <div class="input-group">
           <div class="input-label">デバッグ用ボーダー表示</div>
-          <input class="input-checkbox" type="checkbox" v-model.boolean="isDebug">
+          <div class="input-block"><input class="input-checkbox" type="checkbox" v-model.boolean="isDebug"></div>
         </div>
         <div class="input-group" v-for="key in Object.keys(SETTINGS)">
           <div class="input-label">{{ SETTINGS[key].description }}</div>

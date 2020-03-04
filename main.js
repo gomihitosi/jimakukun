@@ -21,8 +21,8 @@ const SETTINGS = {
   svgBgColor: { value: 'rgba(0,0,0,0.5)', type: TYPE.TEXT, description: 'テキスト背景カラー' },
   svgWidthMargin: { value: 0, type: TYPE.RANGE, min: -25, max: 25, step: 1, description: '字詰め' },
   svgHeightMargin: { value: 0, type: TYPE.RANGE, min: -25, max: 25, step: 1, description: '行間' },
-  svgWidthOffset: { value: 0, type: TYPE.RANGE, min: -10, max: 10, step: 1, description: 'テキストオフセット高さ' },
-  svgHeightOffset: { value: 0, type: TYPE.RANGE, min: -10, max: 10, step: 1, description: 'テキストオフセット幅' },
+  svgWidthOffset: { value: 0, type: TYPE.RANGE, min: -10, max: 10, step: 1, description: 'テキストオフセット幅' },
+  svgHeightOffset: { value: 0, type: TYPE.RANGE, min: -10, max: 10, step: 1, description: 'テキストオフセット高さ' },
   svgGroupWidth: { value: 90, type: TYPE.RANGE, min: 10, max: 100, step: 1, description: 'テキスト表示幅(%)' },
   svgGroupBottomMargin: { value: 8, type: TYPE.RANGE, min: 0, max: 30, step: 1, description: 'テキスト下マージン' },
 }

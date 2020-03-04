@@ -9,6 +9,20 @@ body {
   font-family: "Noto Sans JP", sans-serif;
 }
 
+.headder-container{
+  padding: 0 0.5em;
+  display:flex;
+  place-content: space-between;
+}
+
+.controller-group{
+  display: flex;
+}
+
+.status-box{
+  margin-left: 0.5em;
+}
+
 .svg-container {
   display: flex;
   flex-direction: column;
@@ -28,8 +42,9 @@ body {
 }
 
 .svg-group {
+  width: fit-content;
   display: flex;
-  align-items: 'flex-start';
+  align-items: flex-start;
 }
 
 .svg-block {
@@ -76,11 +91,13 @@ body {
   display: flex;
 }
 
-.input-label {
+.input-group>div {
   height: 1.8em;
   width: 12em;
+  padding: 0 0.5em;
   border-right: 1px solid;
-  margin-right: 1em;
+  display: flex;
+  align-items: center;
 }
 
 input {
