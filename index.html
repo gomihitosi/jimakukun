@@ -18,59 +18,107 @@
 
 <body>
   <div id="app">
-    <div id="vue-container" v-cloak>
-      <div class="headder-container">
-        <div class="controller-group">
-          <button id="start-btn" @click="start">start</button>
-          <button id="stop-btn" @click="stop">stop</button>
-          <span class="status-box">{{ isRecording ? '動作中' : '停止中' }}</span>
+    <div id="vue-container">
+      <div class="flex-container">
+        <div class="headder-container">
+          <div class="controller-group">
+            <button id="start-btn" @click="start">start</button>
+            <button id="stop-btn" @click="stop">stop</button>
+            <span class="status-box">{{ isRecording ? '動作中' : '停止中' }}</span>
+          </div>
+          <div class="title-box"><img src="img/logo.png" alt="字幕クン" loading="lazy"></div>
         </div>
-        <div class="title-box">字幕クン</div>
-      </div>
-      <div class="svg-container" ref="svgContainer" :style="{backgroundColor: settings[loginUser.id].backgroundColor}">
-        <transition-group tag="div" class="svg-transition" name="sub-fade">
-          <div class="svg-group" v-for="sub in subs" v-if="!sub.isDelete" :key="sub.key" :style="{
+        <div class="svg-container" ref="svgContainer" :style="{
+            width: svgContainerWidth + 'px',
+            height: svgContainerHeight + 'px',
+            backgroundColor: settings[loginUser.id].backgroundColor,
+            justifyContent: settings[loginUser.id].svgGroupJustify,
+          }">
+          <transition-group tag="div" class="svg-transition" name="sub-fade" :style="{
+            alignItems: settings[loginUser.id].svgGroupAlign,
+          }">
+            <div class="svg-group" v-for="sub in subs" v-if="!sub.isDelete" :key="sub.key" :style="{
               maxWidth: settings[sub.id].svgGroupWidth + '%',
               flexDirection: settings[sub.id].isBeforeColumn ? 'column' : 'row',
-              marginBottom: settings[sub.id].svgGroupBottomMargin + 'px',
+              margin: getSvgGroupMargin(sub.id),
             }">
-            <svg-block v-if="settings[sub.id].isBeforeText" :is-debug="isDebug" is-before="true" :text="sub.text"
-              :settings="settings[sub.id]">
-            </svg-block>
-            <svg-block :is-debug="isDebug" :text="sub.text" :settings="settings[sub.id]">
-            </svg-block>
-          </div>
-        </transition-group>
-      </div>
-      <div class="input-container">
-        <div class="input-group">
-          <div class="input-label">デバッグ用ボーダー表示</div>
-          <div class="input-block"><input class="input-checkbox" type="checkbox" v-model.boolean="isDebug"></div>
+              <svg-block v-if="settings[sub.id].isBeforeText" is-before="true" :text="sub.text"
+                :settings="settings[sub.id]">
+              </svg-block>
+              <svg-block :text="sub.text" :settings="settings[sub.id]">
+              </svg-block>
+            </div>
+          </transition-group>
         </div>
-        <div class="input-group" v-for="key in Object.keys(SETTINGS)">
-          <div class="input-label">{{ SETTINGS[key].description }}</div>
-          <div class="input-block" v-if="SETTINGS[key].type === TYPE.TEXT">
-            <input type="text" v-model="settings[loginUser.id][key]">
+        <div class="input-container" :style="{ height: 'calc(100% - 2.2em - ' + svgContainerHeight + 'px)' }">
+          <div class="input-group">
+            <div class="input-label">デバッグ</div>
+            <div class="input-row">
+              <div class="input-col">
+                <div class="input-block">
+                  <input id="isBorder" type="checkbox" v-model.boolean="settings[loginUser.id].isBorder"
+                    class="input-checkbox"> <label class="input-for-label" for="isBorder">罫線表示</label>
+                </div>
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="input-col">
+                <div class="input-block">
+                  <input type="text" v-model.number="svgContainerWidth" class="input-number-text">
+                  <input v-model.number="svgContainerWidth" type="range" min="10" max="2000" step="1"
+                    class="input-number-range">
+                </div>
+              </div>
+              <div class="input-col">
+                <div class="input-block">
+                  <input type="text" v-model.number="svgContainerHeight" class="input-number-text">
+                  <input v-model.number="svgContainerHeight" type="range" min="10" max="2000" step="1"
+                    class="input-number-range">
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="input-block" v-if="SETTINGS[key].type === TYPE.NUMBER">
-            <input class="input-text" type="text" v-model.number="settings[loginUser.id][key]">
-          </div>
-          <div class="input-block" v-if="SETTINGS[key].type === TYPE.RANGE">
-            <input class="input-number-text" type="text" v-model.number="settings[loginUser.id][key]">
-            <input class="input-number-range" type="range" v-model.number="settings[loginUser.id][key]"
-              :min="SETTINGS[key].min" :max="SETTINGS[key].max" :step="SETTINGS[key].step">
-          </div>
-          <div class="input-block" v-if="SETTINGS[key].type === TYPE.CHECKBOX">
-            <input class="input-checkbox" type="checkbox" v-model.boolean="settings[loginUser.id][key]">
+          <div class="input-group" v-for="setting in VIEW_SETTINGS">
+            <div class="input-label">{{ setting.title }}</div>
+            <div class="input-row" v-for="rows in setting.keys">
+              <div class="input-col" v-for="key in rows">
+                <div class="input-block" v-if="SETTINGS[key].type !== TYPE.CHECKBOX">
+                  {{ SETTINGS[key].label }}
+                </div>
+                <div class="input-block" v-if="SETTINGS[key].type === TYPE.TEXT">
+                  <input class="input-text" type="text" v-model="settings[loginUser.id][key]">
+                </div>
+                <div class="input-block" v-if="SETTINGS[key].type === TYPE.NUMBER">
+                  <input class="input-text" type="text" v-model.number="settings[loginUser.id][key]">
+                </div>
+                <div class="input-block" v-if="SETTINGS[key].type === TYPE.RANGE">
+                  <input class="input-number-text" type="text" v-model.number="settings[loginUser.id][key]">
+                  <input class="input-number-range" type="range" v-model.number="settings[loginUser.id][key]"
+                    :min="SETTINGS[key].min" :max="SETTINGS[key].max" :step="SETTINGS[key].step">
+                </div>
+                <div class="input-block" v-if="SETTINGS[key].type === TYPE.CHECKBOX">
+                  <input class="input-checkbox" :id="key" type="checkbox" v-model.boolean="settings[loginUser.id][key]">
+                  <label class="input-for-label" :for="key">{{ SETTINGS[key].label }}</label>
+                </div>
+                <div class="input-block radio-block" v-if="SETTINGS[key].type === TYPE.RADIO">
+                  <div v-for="(v, i) in SETTINGS[key].data">
+                    <input class="input-radio" :id="key+i" :value="v.value" type="radio"
+                      v-model="settings[loginUser.id][key]">
+                    <label class="input-for-label" :for="key+i">{{ v.text }}</label>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="log-container">
-        <div v-for="v in transcripts">[{{ getFormatedTimeStamp(v.timeStamp) }}] {{ v.text }}</div>
+        <div class="log-container">
+          <div v-for="v in transcripts">[{{ getFormatedTimeStamp(v.timeStamp) }}] {{ v.text }}</div>
+        </div>
       </div>
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+  <script src="const.js"></script>
   <script src="main.js"></script>
 </body>
 
