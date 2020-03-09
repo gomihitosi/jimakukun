@@ -49,29 +49,30 @@ var vm = new Vue({
       if (this.getNotDeleteSameUserSubs(ID).length >= this.sameUserMaxSubCount && this.getNotDeleteSameUserSubs(ID)[0].isFinal) {
         this.firstSubRemove(ID);
       }
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        let transcript = e.results[i][0].transcript;
-        let targetSubs = this.getNotDeleteSameUserSubs(ID);
-        if (targetSubs.length === 0) {
-          let data = {
-            id: ID,
-            key: `${ID}_${Math.floor(e.timeStamp)}`,
-            text: transcript,
-            isFinal: false,
-            isDelete: false,
-            start: Math.floor(e.timeStamp),
-            end: null
-          };
-          this.subs.push(data);
-        } else {
-          targetSubs[targetSubs.length - 1].text = transcript;
-        }
-        if (e.results[i].isFinal) {
-          console.log(transcript);
-          let target = this.getNotDeleteSameUserSubs(ID).reverse()[0];
-          target.isFinal = true;
-          target.end = Math.floor(e.timeStamp);
-        }
+      let transcript = [...e.results].filter(v => !v.isFinal).map(v => v[0].transcript).join('');
+      let targetSubs = this.getNotDeleteSameUserSubs(ID);
+
+      if (targetSubs.length === 0) {
+        let data = {
+          id: ID,
+          key: `${ID}_${Math.floor(e.timeStamp)}`,
+          text: transcript,
+          isFinal: false,
+          isDelete: false,
+          start: Math.floor(e.timeStamp),
+          end: null
+        };
+        this.subs.push(data);
+      } else {
+        targetSubs[targetSubs.length - 1].text = transcript;
+      }
+      if (e.results[e.resultIndex].isFinal) {
+        let finishText = e.results[e.resultIndex][0].transcript;
+        targetSubs[targetSubs.length - 1].text = finishText;
+        console.log(finishText);
+        let target = this.getNotDeleteSameUserSubs(ID).reverse()[0];
+        target.isFinal = true;
+        target.end = Math.floor(e.timeStamp);
       }
     }
     recognition.onerror = (e) => {
