@@ -1,32 +1,3 @@
-Vue.component('svg-block', {
-  props: ['isBefore', 'text', 'settings'],
-  template: `
-<div class="svg-block" :class="{before : isBefore}" :style="{
-    fontFamily:(isBefore ? settings.beforeTextFontFamily : settings.fontFamily),
-    justifyContent: settings.svgBlockAlign,
-  }">
-  <div class="svg-box" v-for="v in [...(isBefore ? settings.beforeText : text)]" :style="{
-        border: settings.isBorder ? '1px solid' : '0',
-        width: settings.fontSize + settings.strokeWidth + settings.svgWidthOffset - (settings.isBorder ? 2 : 0) + 'px',
-        height: settings.fontSize + settings.strokeWidth + settings.svgHeightOffset - (settings.isBorder ? 2 : 0) + 'px',
-        margin: settings.svgHeightMargin + 'px ' + settings.svgWidthMargin + 'px',
-      }">
-    <div class="svg-bg" v-if="settings.isSvgBg" :style="{
-        backgroundColor: settings.svgBgColor,
-      }"></div>
-    <svg class="svg">
-      <text class="svg-text" :x="settings.x + '%'" :y="settings.y + '%'" :style="{
-        fontSize: settings.fontSize + 'px',
-        fontWeight: settings.fontWeight,
-        strokeWidth: settings.strokeWidth + 'px',
-        fill: settings.fill,
-        stroke: settings.stroke,
-      }">{{ v }}</text>
-    </svg>
-  </div>
-</div>`
-});
-
 var vm = new Vue({
   el: '#app',
   data: {
@@ -37,6 +8,7 @@ var vm = new Vue({
     settings: {
       'aaaa': getDefaultSetting()
     },
+    showMenuSetting: getShowMenuSetting(),
     loginUser: { id: 'aaaa' },
     transcripts: [],
     subs: [],
@@ -50,7 +22,18 @@ var vm = new Vue({
     },
   },
   mounted() {
-    this.svgContainerWidth = window.innerWidth;
+    const resizeFunc = () => {
+      this.svgContainerWidth = window.innerWidth;
+    };
+    window.addEventListener('resize', resizeFunc);
+    resizeFunc();
+
+    // TODO: 認識停止ボタン 仮実装
+    addEventListener('keydown', (e) => {
+      if (e.code === this.settings[this.loginUser.id].isStopKey && (e.ctrlKey || e.metaKey)) {
+        recognition.stop();
+      }
+    });
 
     const ID = this.loginUser.id;
 
@@ -104,15 +87,6 @@ var vm = new Vue({
     }
   },
   methods: {
-    debugSubPush: function (num) {
-      var text = [...new Array(num)].map(v => "こんにちは").join('');
-      this.subs.push({
-        id: 'aaaa', key: 'aaaa_2748',
-        text: text,
-        isFinal: true, isDelete: false,
-        start: 2748, end: 2781
-      });
-    },
     start: function () {
       console.log('start');
       if (!this.recordStartDate) this.recordStartDate = new Date();
@@ -145,6 +119,17 @@ var vm = new Vue({
       if (targetSubs.length > 0) {
         targetSubs[0].isDelete = true;
       }
+    },
+    updateStopKey: function () {
+      this.settings[this.loginUser.id].isStopKey = "*好きなキーを入力*"
+      let func = (e) => {
+        if (e.code && !e.ctrlKey && !e.metaKey) {
+          this.settings[this.loginUser.id].isStopKey = e.code;
+          document.activeElement.blur();
+          removeEventListener('keydown', func);
+        }
+      };
+      addEventListener('keydown', func);
     },
   },
 })

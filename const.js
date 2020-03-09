@@ -13,6 +13,7 @@ const FLEX_JUSTIFY = [
 ];
 const SETTINGS = {
   isBorder: { value: true, type: TYPE.CHECKBOX, label: '罫線表示', description: 'ボーダー表示' },
+  isStopKey: { value: 'Space', type: TYPE.TEXT, label: '認識終了キー', description: 'ボーダー表示' },
   backgroundColor: { value: '#00FF00', type: TYPE.TEXT, label: '背景色', description: '背景色' },
   svgGroupWidth: { value: 90, type: TYPE.RANGE, min: 10, max: 100, step: 1, label: '行幅', description: 'テキスト表示幅(%)' },
   svgGroupMargin: { value: 8, type: TYPE.RANGE, min: 0, max: 30, step: 1, label: '余白', description: 'テキスト下マージン' },
@@ -24,13 +25,15 @@ const SETTINGS = {
   beforeText: { value: '(名前)', type: TYPE.TEXT, label: '表示文字', description: '前置きテキスト' },
   beforeTextFontFamily: { value: 'Noto Sans JP', type: TYPE.TEXT, label: 'フォント', description: '前置きテキストフォント' },
   fontFamily: { value: 'Noto Sans JP', type: TYPE.TEXT, label: 'フォント', description: 'テキストフォント' },
-  fontSize: { value: 25, type: TYPE.RANGE, min: 1, max: 100, step: 1, label: '文字色', description: 'テキストサイズ' },
+  fontSize: { value: 25, type: TYPE.RANGE, min: 1, max: 100, step: 1, label: '文字サイズ', description: 'テキストサイズ' },
   fontWeight: { value: 400, type: TYPE.RANGE, min: 100, max: 900, step: 100, label: '文字太さ', description: 'テキスト太さ' },
   strokeWidth: { value: 5, type: TYPE.RANGE, min: 0, max: 20, step: 1, label: '縁取り太さ', description: '縁取りサイズ' },
   fill: { value: '#FFFF00', type: TYPE.TEXT, label: '文字色', description: 'テキストカラー' },
   stroke: { value: '#000000', type: TYPE.TEXT, label: '縁取り色', description: '縁取りカラー' },
-  x: { value: 50, type: TYPE.RANGE, min: 0, max: 100, step: 1, label: '縦', description: 'テキスト縦位置(%)' },
-  y: { value: 55, type: TYPE.RANGE, min: 0, max: 100, step: 1, label: '横', description: 'テキスト横位置(%)' },
+  x: { value: 50, type: TYPE.RANGE, min: 0, max: 100, step: 1, label: '文字縦位置', description: 'テキスト縦位置(%)' },
+  y: { value: 55, type: TYPE.RANGE, min: 0, max: 100, step: 1, label: '文字横位置', description: 'テキスト横位置(%)' },
+  svgLeft: { value: 0, type: TYPE.RANGE, min: -50, max: 50, step: 1, label: '文字横マージン', description: 'テキスト縦マージン' },
+  svgTop: { value: 0, type: TYPE.RANGE, min: -50, max: 50, step: 1, label: '文字縦マージン', description: 'テキスト横マージン' },
   isSvgBg: { value: true, type: TYPE.CHECKBOX, label: '背景表示', description: 'テキスト背景表示' },
   svgBgColor: { value: 'rgba(0,0,0,0.5)', type: TYPE.TEXT, label: '背景色', description: 'テキスト背景カラー' },
   svgWidthMargin: { value: 0, type: TYPE.RANGE, min: -25, max: 25, step: 1, label: '字詰め', description: '字詰め' },
@@ -38,15 +41,53 @@ const SETTINGS = {
   svgWidthOffset: { value: 0, type: TYPE.RANGE, min: -10, max: 10, step: 1, label: '横幅', description: 'テキストオフセット幅' },
   svgHeightOffset: { value: 0, type: TYPE.RANGE, min: -10, max: 10, step: 1, label: '高さ', description: 'テキストオフセット高さ' },
 };
-const VIEW_SETTINGS = [
-  { title: '表示', keys: [['backgroundColor'], ['svgGroupWidth'], ['svgGroupMargin'], ['svgGroupAlign'], ['svgGroupJustify'], ['svgBlockAlign']] },
-  { title: '前置きテキスト', keys: [['isBeforeText', 'isBeforeColumn'], ['beforeText'], ['beforeTextFontFamily']] },
-  { title: 'テキスト', keys: [['fontFamily'], ['fontSize'], ['fontWeight'], ['strokeWidth'], ['fill'], ['stroke'], ['x'], ['y']] },
-  { title: 'テキスト他', keys: [['isSvgBg'], ['svgBgColor'], ['svgWidthMargin'], ['svgHeightMargin'], ['svgWidthOffset'], ['svgHeightOffset']] },
-];
 function getDefaultSetting() {
-  return Object.keys(SETTINGS).reduce((n, p) => {
+  let result = Object.keys(SETTINGS).reduce((n, p) => {
     n[p] = SETTINGS[p].value;
     return n;
-  }, {})
+  }, {});
+  result.getSvgBoxWidth = function (isPureSize) {
+    return this.fontSize + this.strokeWidth + this.svgWidthOffset - (this.isBorder && !isPureSize ? 2 : 0);
+  }
+  result.getSvgBoxHeight = function (isPureSize) {
+    return this.fontSize + this.strokeWidth + this.svgHeightOffset - (this.isBorder && !isPureSize ? 2 : 0);
+  }
+  result.getSvgBoxMargin = function (len, idx) {
+    let limit = this.svgContainerWidth / this.getSvgBoxWidth(true);
+
+    // 横位置 -1/0/1
+    let colPosition = (idx % limit) / limit;
+    let alignPosition = colPosition === 0.5 ? 0 : colPosition < 0.5 ? -1 : 1;
+
+    // 縦位置 -1/0/1
+    let rowPosition = Math.floor(idx / limit);
+    let justifiPosition = rowPosition === 0 ? -1 : rowPosition === Math.floor(len / limit) ? 1 : 0;
+
+    let isTop = idx - limit > -1;
+    let isLeft = idx % limit !== 0;
+
+    // TODO: 仮の値を返却
+    return this.svgHeightMargin + 'px ' + this.svgWidthMargin + 'px'
+  }
+  return result;
+}
+const VIEW_SETTINGS = {
+  showMenu: { title: '表示', keys: [['backgroundColor'], ['svgGroupWidth'], ['svgGroupMargin'], ['svgGroupAlign'], ['svgGroupJustify']] },
+  beforeTextMenu: { title: '前置きテキスト', keys: [['isBeforeText', 'isBeforeColumn'], ['beforeText'], ['beforeTextFontFamily']] },
+  textMenu: { title: 'テキスト', keys: [['fontFamily'], ['fontSize'], ['fontWeight'], ['strokeWidth'], ['fill'], ['stroke'], ['x'], ['y'], ['svgLeft'], ['svgTop'], ['svgBlockAlign']] },
+  textEtcMenu: { title: 'テキスト他', keys: [['isSvgBg'], ['svgBgColor'], ['svgWidthMargin'], ['svgHeightMargin'], ['svgWidthOffset'], ['svgHeightOffset']] },
+};
+function getShowMenuSetting() {
+  return Object.keys(VIEW_SETTINGS).reduce((n, p) => {
+    n[p] = true;
+    return n;
+  }, {});
+}
+// GoogleChrome以外の場合は注意を表示
+if (window.navigator.userAgent.toLowerCase().indexOf('chrome') === -1) {
+  const overlay = document.createElement('div');
+  overlay.id = 'warning-overlay';
+  overlay.innerHTML = '<p>PC版GoogleChrome以外では正しく動作しません。<br>PC版GoogleChromeでのアクセスをお願いします。</p>';
+  overlay.addEventListener('click', function (e) { this.remove(); });
+  document.body.appendChild(overlay);
 }

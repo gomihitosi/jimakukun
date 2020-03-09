@@ -22,11 +22,11 @@
       <div class="flex-container">
         <div class="headder-container">
           <div class="controller-group">
-            <button id="start-btn" @click="start">start</button>
-            <button id="stop-btn" @click="stop">stop</button>
+            <button id="start-btn" @click="start" v-if="!isRecording">start</button>
+            <button id="stop-btn" @click="stop" v-if="isRecording">stop</button>
             <span class="status-box">{{ isRecording ? '動作中' : '停止中' }}</span>
           </div>
-          <div class="title-box"><img src="img/logo.png" alt="字幕クン" loading="lazy"></div>
+          <div class="title-box"><img src="img/logo.png" alt="字幕クン" width="104px" height="32px" loading="lazy"></div>
         </div>
         <div class="svg-container" ref="svgContainer" :style="{
             width: svgContainerWidth + 'px',
@@ -42,10 +42,10 @@
               flexDirection: settings[sub.id].isBeforeColumn ? 'column' : 'row',
               margin: getSvgGroupMargin(sub.id),
             }">
-              <svg-block v-if="settings[sub.id].isBeforeText" is-before="true" :text="sub.text"
+              <svg-block v-if="settings[sub.id].isBeforeText" :is-before="true" :text="settings[sub.id].beforeText"
                 :settings="settings[sub.id]">
               </svg-block>
-              <svg-block :text="sub.text" :settings="settings[sub.id]">
+              <svg-block :is-before="false" :text="sub.text" :settings="settings[sub.id]">
               </svg-block>
             </div>
           </transition-group>
@@ -58,6 +58,9 @@
                 <div class="input-block">
                   <input id="isBorder" type="checkbox" v-model.boolean="settings[loginUser.id].isBorder"
                     class="input-checkbox"> <label class="input-for-label" for="isBorder">罫線表示</label>
+                </div>
+                <div class="input-block">
+                  認識停止キー <button @click="updateStopKey">ctrl + {{ settings[loginUser.id].isStopKey }}</button>
                 </div>
               </div>
             </div>
@@ -78,9 +81,13 @@
               </div>
             </div>
           </div>
-          <div class="input-group" v-for="setting in VIEW_SETTINGS">
-            <div class="input-label">{{ setting.title }}</div>
-            <div class="input-row" v-for="rows in setting.keys">
+          <div class="input-group" v-for="(setting, key) in VIEW_SETTINGS">
+            <div class="input-label">
+              <span>{{ setting.title }}</span>
+              <span @click="showMenuSetting[key] = !showMenuSetting[key]"
+                style="cursor: pointer;">{{ showMenuSetting[key] ? '✕' : '▼' }}</span>
+            </div>
+            <div class="input-row" v-for="rows in setting.keys" v-if="showMenuSetting[key]">
               <div class="input-col" v-for="key in rows">
                 <div class="input-block" v-if="SETTINGS[key].type !== TYPE.CHECKBOX">
                   {{ SETTINGS[key].label }}
@@ -119,6 +126,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
   <script src="const.js"></script>
+  <script src="component.js"></script>
   <script src="main.js"></script>
 </body>
 
