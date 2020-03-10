@@ -1,3 +1,4 @@
+const LOCAL_STORAGE_KEY = 'jimakukun-settings';
 const TYPE = {
   TEXT: 1,
   NUMBER: 2,
@@ -41,11 +42,21 @@ const SETTINGS = {
   svgWidthOffset: { value: 0, type: TYPE.RANGE, min: -10, max: 10, step: 1, label: '横幅', description: 'テキストオフセット幅' },
   svgHeightOffset: { value: 0, type: TYPE.RANGE, min: -10, max: 10, step: 1, label: '高さ', description: 'テキストオフセット高さ' },
 };
-function getDefaultSetting() {
-  let result = Object.keys(SETTINGS).reduce((n, p) => {
+function getDefaultSettings() {
+  return Object.keys(SETTINGS).reduce((n, p) => {
     n[p] = SETTINGS[p].value;
     return n;
   }, {});
+}
+function getSettingsData() {
+  let result = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+  if (!result) result = getDefaultSettings();
+  result.save = function () {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(this));
+  };
+  result.remove = function () {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+  };
   result.getSvgBoxWidth = function (isPureSize) {
     return this.fontSize + this.strokeWidth + this.svgWidthOffset - (this.isBorder && !isPureSize ? 2 : 0);
   }

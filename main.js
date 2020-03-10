@@ -6,7 +6,7 @@ var vm = new Vue({
     recognition: null,
     sameUserMaxSubCount: 1,
     settings: {
-      'aaaa': getDefaultSetting()
+      'aaaa': getSettingsData()
     },
     showMenuSetting: getShowMenuSetting(),
     loginUser: { id: 'aaaa' },
@@ -49,6 +49,9 @@ var vm = new Vue({
       if (this.getNotDeleteSameUserSubs(ID).length >= this.sameUserMaxSubCount && this.getNotDeleteSameUserSubs(ID)[0].isFinal) {
         this.firstSubRemove(ID);
       }
+      // 日本語の途中で英単語などが認識された場合、別indexで認識が始まってしまう為
+      // 認識結果リストの中から終了フラグが立っていない物を対象に認識語句をすべて結合して取り扱う
+      // TODO: スペースが入る
       let transcript = [...e.results].filter(v => !v.isFinal).map(v => v[0].transcript).join('');
       let targetSubs = this.getNotDeleteSameUserSubs(ID);
 
@@ -67,6 +70,8 @@ var vm = new Vue({
         targetSubs[targetSubs.length - 1].text = transcript;
       }
       if (e.results[e.resultIndex].isFinal) {
+        // 認識終了時は全て結合された状態で [e.resultIndex][0] に結果が入っているのでそれを使う
+        // TODO: スペースが入る
         let finishText = e.results[e.resultIndex][0].transcript;
         targetSubs[targetSubs.length - 1].text = finishText;
         console.log(finishText);
@@ -98,6 +103,14 @@ var vm = new Vue({
       console.log('stop');
       this.isRecording = false;
       recognition.stop();
+    },
+    save: function () {
+      this.settings[this.loginUser.id].save();
+    },
+    reset: function () {
+      this.settings[this.loginUser.id].remove();
+      this.settings[this.loginUser.id] = getSettingsData();
+      this.settings[this.loginUser.id].save();
     },
     getSvgGroupMargin: function (id) {
       // TODO: 本当は揃えと寄せを見て判定

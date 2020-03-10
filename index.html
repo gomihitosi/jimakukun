@@ -67,6 +67,14 @@
             <div class="input-row">
               <div class="input-col">
                 <div class="input-block">
+                  <button id="save-btn" @click="save">設定保存</button>
+                  <button id="save-btn" @click="reset">設定初期化</button>
+                </div>
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="input-col">
+                <div class="input-block">
                   <input type="text" v-model.number="svgContainerWidth" class="input-number-text">
                   <input v-model.number="svgContainerWidth" type="range" min="10" max="2000" step="1"
                     class="input-number-range">
