@@ -31,20 +31,20 @@ var vm = new Vue({
     // TODO: 認識停止ボタン 仮実装
     addEventListener('keydown', (e) => {
       if (e.code === this.settings[this.loginUser.id].isStopKey && (e.ctrlKey || e.metaKey)) {
-        recognition.stop();
+        this.recognition.stop();
       }
     });
 
     const ID = this.loginUser.id;
 
     SpeechRecognition = webkitSpeechRecognition || SpeechRecognition;
-    recognition = new SpeechRecognition();
+    this.recognition = new SpeechRecognition();
 
-    recognition.lang = 'ja-JP';
-    recognition.interimResults = true;
-    recognition.continuous = true;
+    this.recognition.lang = 'ja-JP';
+    this.recognition.interimResults = this.settings[this.loginUser.id].isInterim;
+    this.recognition.continuous = true;
 
-    recognition.onresult = (e) => {
+    this.recognition.onresult = (e) => {
       // ユーザIDが一致する字幕が重複件数以上かつ、認識終了済字幕だった場合は最古から消去を行う
       if (this.getNotDeleteSameUserSubs(ID).length >= this.sameUserMaxSubCount && this.getNotDeleteSameUserSubs(ID)[0].isFinal) {
         this.firstSubRemove(ID);
@@ -66,6 +66,7 @@ var vm = new Vue({
           end: null
         };
         this.subs.push(data);
+        targetSubs = this.getNotDeleteSameUserSubs(ID);
       } else {
         targetSubs[targetSubs.length - 1].text = transcript;
       }
@@ -80,15 +81,15 @@ var vm = new Vue({
         target.end = Math.floor(e.timeStamp);
       }
     }
-    recognition.onerror = (e) => {
+    this.recognition.onerror = (e) => {
       console.warn(e);
     }
-    recognition.onend = (e) => {
+    this.recognition.onend = (e) => {
       if (!this.isRecording) return;
       console.log('on end');
       this.start();
     }
-    recognition.onnomatch = function (event) {
+    this.recognition.onnomatch = function (event) {
       console.error('on nomatch');
     }
   },
@@ -97,12 +98,12 @@ var vm = new Vue({
       console.log('start');
       if (!this.recordStartDate) this.recordStartDate = new Date();
       this.isRecording = true;
-      recognition.start();
+      this.recognition.start();
     },
     stop: function () {
       console.log('stop');
       this.isRecording = false;
-      recognition.stop();
+      this.recognition.stop();
     },
     save: function () {
       this.settings[this.loginUser.id].save();
@@ -111,6 +112,10 @@ var vm = new Vue({
       this.settings[this.loginUser.id].remove();
       this.settings[this.loginUser.id] = getSettingsData();
       this.settings[this.loginUser.id].save();
+    },
+    changeInterim: function (id) {
+      this.recognition.interimResults = this.settings[this.loginUser.id].isInterim;
+      this.recognition.stop();
     },
     getSvgGroupMargin: function (id) {
       // TODO: 本当は揃えと寄せを見て判定

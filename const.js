@@ -14,7 +14,8 @@ const FLEX_JUSTIFY = [
 ];
 const SETTINGS = {
   isBorder: { value: true, type: TYPE.CHECKBOX, label: '罫線表示', description: 'ボーダー表示' },
-  isStopKey: { value: 'Space', type: TYPE.TEXT, label: '認識終了キー', description: 'ボーダー表示' },
+  isInterim: { value: true, type: TYPE.CHECKBOX, label: '認識暫定表示', description: '認識暫定表示' },
+  isStopKey: { value: 'Space', type: TYPE.TEXT, label: '認識終了キー', description: '認識終了キー' },
   backgroundColor: { value: '#00FF00', type: TYPE.TEXT, label: '背景色', description: '背景色' },
   svgGroupWidth: { value: 90, type: TYPE.RANGE, min: 10, max: 100, step: 1, label: '行幅', description: 'テキスト表示幅(%)' },
   svgGroupMargin: { value: 8, type: TYPE.RANGE, min: 0, max: 30, step: 1, label: '余白', description: 'テキスト下マージン' },
@@ -48,9 +49,22 @@ function getDefaultSettings() {
     return n;
   }, {});
 }
+
+function diffUpdateSettings(result) {
+  return Object.keys(SETTINGS).forEach(e => {
+    if (!(e in result)) result[e] = SETTINGS[e].value;
+  });
+}
 function getSettingsData() {
   let result = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
-  if (!result) result = getDefaultSettings();
+
+  if (!result) {
+    result = getDefaultSettings();
+  } else {
+    // 差分のみ入れる
+    diffUpdateSettings(result);
+  }
+
   result.save = function () {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(this));
   };
