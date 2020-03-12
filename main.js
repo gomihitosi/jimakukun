@@ -10,18 +10,13 @@ var vm = new Vue({
     },
     showMenuSetting: getShowMenuSetting(),
     loginUser: { id: 'aaaa' },
-    transcripts: [],
     subs: [],
-    archives: [],
     svgContainerWidth: 0,
     svgContainerHeight: 240,
     transitionStyle: null,
     colorPicker: { value: '', top: 0, left: 0, isShow: false, key: '' },
   },
   computed: {
-    lastTrascriptData: function () {
-      return this.transcripts.slice(-1)[0];
-    },
     transitionEnter: function () {
       const d = this.settings[this.loginUser.id];
       return `.svg-transition-enter { opacity: ${d.fadeTime > 0 ? 0 : 1}; transform: translate(${d.inPositionX}px, ${d.inPositionY}px); }`;
@@ -172,7 +167,7 @@ var vm = new Vue({
       }
     },
     updateStopKey: function () {
-      this.settings[this.loginUser.id].isStopKey = "*好きなキーを入力*"
+      this.settings[this.loginUser.id].isStopKey = "*キーを入力*"
       let func = (e) => {
         if (e.code && !e.ctrlKey && !e.metaKey) {
           this.settings[this.loginUser.id].isStopKey = e.code;

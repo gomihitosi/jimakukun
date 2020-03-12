@@ -165,9 +165,6 @@
           :style="{top:colorPicker.top+'px', left:colorPicker.left+'px'}">
         </chrome-picker>
         <div class="vc-chrome-overlay" v-if="colorPicker.isShow" @click="colorPicker.isShow=false"></div>
-        <div class="log-container">
-          <div v-for="v in transcripts">[{{ getFormatedTimeStamp(v.timeStamp) }}] {{ v.text }}</div>
-        </div>
         <div class="footer-container">
           <div class="footer-group">
           </div>
