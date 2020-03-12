@@ -74,8 +74,8 @@ var vm = new Vue({
       }
       // 日本語の途中で英単語などが認識された場合、別indexで認識が始まってしまう為
       // 認識結果リストの中から終了フラグが立っていない物を対象に認識語句をすべて結合して取り扱う
-      // TODO: スペースが入る
-      let transcript = [...e.results].filter(v => !v.isFinal).map(v => v[0].transcript).join('');
+      // 英単語を認識した際に半角スペースが挿入されるので空文字に置換
+      let transcript = [...e.results].filter(v => !v.isFinal).map(v => v[0].transcript).join('').replace(/ /g, '');
       let targetSubs = this.getNotDeleteSameUserSubs(ID);
 
       if (targetSubs.length === 0) {
@@ -95,8 +95,8 @@ var vm = new Vue({
       }
       if (e.results[e.resultIndex].isFinal) {
         // 認識終了時は全て結合された状態で [e.resultIndex][0] に結果が入っているのでそれを使う
-        // TODO: スペースが入る
-        let finishText = e.results[e.resultIndex][0].transcript;
+        // 英単語を認識した際に半角スペースが挿入されるので空文字に置換
+        let finishText = e.results[e.resultIndex][0].transcript.replace(/ /g, '');
         targetSubs[targetSubs.length - 1].text = finishText;
         console.log(finishText);
         let target = this.getNotDeleteSameUserSubs(ID).reverse()[0];
