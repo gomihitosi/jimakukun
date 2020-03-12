@@ -49,9 +49,29 @@ body {
   padding: 0 0.5em;
   display:flex;
   place-content: space-between;
-  height: 2em;
+  height: 32px;
 }
-
+.footer-container{
+  font-size: 0.8em;
+  color: var(--bg-color);
+  background-color: var(--text-sub-color);
+  padding: 0 0.5em;
+  display:flex;
+  place-content: space-between;
+  height: 32px;
+}
+.footer-group{
+  display: flex;
+  align-items: center;
+}
+a {
+  text-decoration: none;
+  color: var(--accent-sub-color);
+}
+a:hover {
+  text-decoration: none;
+  color: var(--accent-color);
+}
 .controller-group{
   display: flex;
   margin: 0.2em;
