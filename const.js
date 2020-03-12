@@ -5,6 +5,8 @@ const TYPE = {
   RANGE: 3,
   CHECKBOX: 4,
   RADIO: 5,
+  SELECT: 6,
+  COLOR: 7,
 };
 const FLEX_ALIGN = [
   { text: '左', value: 'flex-start' }, { text: '中', value: 'center' }, { text: '右', value: 'flex-end' }
@@ -12,11 +14,16 @@ const FLEX_ALIGN = [
 const FLEX_JUSTIFY = [
   { text: '上', value: 'flex-start' }, { text: '中', value: 'center' }, { text: '下', value: 'flex-end' }
 ];
+const EASING_TYPE = [
+  { text: 'LINEAR', value: 'linear' }, { text: 'EASE', value: 'ease' },
+  { text: 'EASE-IN', value: 'ease-in' }, { text: 'EASE-OUT', value: 'ease-out' },
+  { text: 'EASE-IN-OUT', value: 'ease-in-out' },
+];
 const SETTINGS = {
   isBorder: { value: true, type: TYPE.CHECKBOX, label: '罫線表示', description: 'ボーダー表示' },
   isInterim: { value: true, type: TYPE.CHECKBOX, label: '認識暫定表示', description: '認識暫定表示' },
   isStopKey: { value: 'Space', type: TYPE.TEXT, label: '認識終了キー', description: '認識終了キー' },
-  backgroundColor: { value: '#00FF00', type: TYPE.TEXT, label: '背景色', description: '背景色' },
+  backgroundColor: { value: 'rgba(0, 255, 0, 1)', type: TYPE.COLOR, label: '背景色', description: '背景色' },
   svgGroupWidth: { value: 90, type: TYPE.RANGE, min: 10, max: 100, step: 1, label: '行幅', description: 'テキスト表示幅(%)' },
   svgGroupMargin: { value: 8, type: TYPE.RANGE, min: 0, max: 30, step: 1, label: '余白', description: 'テキスト下マージン' },
   svgGroupAlign: { value: 'center', type: TYPE.RADIO, data: FLEX_ALIGN, label: '揃え', description: '揃え' },
@@ -30,18 +37,27 @@ const SETTINGS = {
   fontSize: { value: 25, type: TYPE.RANGE, min: 1, max: 100, step: 1, label: '文字サイズ', description: 'テキストサイズ' },
   fontWeight: { value: 400, type: TYPE.RANGE, min: 100, max: 900, step: 100, label: '文字太さ', description: 'テキスト太さ' },
   strokeWidth: { value: 5, type: TYPE.RANGE, min: 0, max: 20, step: 1, label: '縁取り太さ', description: '縁取りサイズ' },
-  fill: { value: '#FFFF00', type: TYPE.TEXT, label: '文字色', description: 'テキストカラー' },
-  stroke: { value: '#000000', type: TYPE.TEXT, label: '縁取り色', description: '縁取りカラー' },
+  fill: { value: 'rgba(255, 255, 0, 1)', type: TYPE.COLOR, label: '文字色', description: 'テキストカラー' },
+  stroke: { value: 'rgba(0, 0, 0, 1)', type: TYPE.COLOR, label: '縁取り色', description: '縁取りカラー' },
   x: { value: 50, type: TYPE.RANGE, min: 0, max: 100, step: 1, label: '文字縦位置', description: 'テキスト縦位置(%)' },
   y: { value: 55, type: TYPE.RANGE, min: 0, max: 100, step: 1, label: '文字横位置', description: 'テキスト横位置(%)' },
   svgLeft: { value: 0, type: TYPE.RANGE, min: -50, max: 50, step: 1, label: '文字横マージン', description: 'テキスト縦マージン' },
   svgTop: { value: 0, type: TYPE.RANGE, min: -50, max: 50, step: 1, label: '文字縦マージン', description: 'テキスト横マージン' },
   isSvgBg: { value: true, type: TYPE.CHECKBOX, label: '背景表示', description: 'テキスト背景表示' },
-  svgBgColor: { value: 'rgba(0,0,0,0.5)', type: TYPE.TEXT, label: '背景色', description: 'テキスト背景カラー' },
+  svgBgColor: { value: 'rgba(0,0,0,0.5)', type: TYPE.COLOR, label: '背景色', description: 'テキスト背景カラー' },
   svgWidthMargin: { value: 0, type: TYPE.RANGE, min: -25, max: 25, step: 1, label: '字詰め', description: '字詰め' },
   svgHeightMargin: { value: 0, type: TYPE.RANGE, min: -25, max: 25, step: 1, label: '行間', description: '行間' },
   svgWidthOffset: { value: 0, type: TYPE.RANGE, min: -10, max: 10, step: 1, label: '横幅', description: 'テキストオフセット幅' },
   svgHeightOffset: { value: 0, type: TYPE.RANGE, min: -10, max: 10, step: 1, label: '高さ', description: 'テキストオフセット高さ' },
+  deleteTime: { value: 0, type: TYPE.RANGE, min: 0, max: 15, step: 0.1, label: '字幕消去時間', description: '字幕消去時間' },
+  fadeTime: { value: 0.5, type: TYPE.RANGE, min: 0, max: 5, step: 0.1, label: 'フェード時間', description: 'フェード時間', change: 'updateCss' },
+  moveTime: { value: 0.5, type: TYPE.RANGE, min: 0, max: 5, step: 0.1, label: '字幕移動時間', description: '字幕移動時間', change: 'updateCss' },
+  inPositionX: { value: 0, type: TYPE.RANGE, min: -100, max: 100, step: 1, label: '登場横位置', description: '表示横位置', change: 'updateCss' },
+  inPositionY: { value: 0, type: TYPE.RANGE, min: -100, max: 100, step: 1, label: '登場縦位置', description: '表示縦位置', change: 'updateCss' },
+  outPositionX: { value: 0, type: TYPE.RANGE, min: -100, max: 100, step: 1, label: '退場横位置', description: '退場横位置', change: 'updateCss' },
+  outPositionY: { value: 0, type: TYPE.RANGE, min: -100, max: 100, step: 1, label: '退場縦位置', description: '退場縦位置', change: 'updateCss' },
+  fadeEasingType: { value: 'ease', type: TYPE.SELECT, data: EASING_TYPE, label: 'フェードタイプ', description: 'フェードタイプ', change: 'updateCss' },
+  moveEasingType: { value: 'ease', type: TYPE.SELECT, data: EASING_TYPE, label: '移動タイプ', description: '移動タイプ', change: 'updateCss' },
 };
 function getDefaultSettings() {
   return Object.keys(SETTINGS).reduce((n, p) => {
@@ -99,8 +115,9 @@ function getSettingsData() {
 const VIEW_SETTINGS = {
   showMenu: { title: '表示', keys: [['backgroundColor'], ['svgGroupWidth'], ['svgGroupMargin'], ['svgGroupAlign'], ['svgGroupJustify']] },
   beforeTextMenu: { title: '前置きテキスト', keys: [['isBeforeText', 'isBeforeColumn'], ['beforeText'], ['beforeTextFontFamily']] },
-  textMenu: { title: 'テキスト', keys: [['fontFamily'], ['fontSize'], ['fontWeight'], ['strokeWidth'], ['fill'], ['stroke'], ['x'], ['y'], ['svgLeft'], ['svgTop'], ['svgBlockAlign']] },
-  textEtcMenu: { title: 'テキスト他', keys: [['isSvgBg'], ['svgBgColor'], ['svgWidthMargin'], ['svgHeightMargin'], ['svgWidthOffset'], ['svgHeightOffset']] },
+  textMenu: { title: '字幕', keys: [['fontFamily'], ['fontSize'], ['fontWeight'], ['strokeWidth'], ['fill'], ['stroke'], ['x'], ['y'], ['svgLeft'], ['svgTop'], ['svgBlockAlign']] },
+  textEtcMenu: { title: '字幕他', keys: [['isSvgBg'], ['svgBgColor'], ['svgWidthMargin'], ['svgHeightMargin'], ['svgWidthOffset'], ['svgHeightOffset'], ['deleteTime']] },
+  textAnimeMenu: { title: '字幕アニメ', keys: [['fadeTime'], ['moveTime'], ['inPositionX'], ['inPositionY'], ['outPositionX'], ['outPositionY'], ['fadeEasingType'], ['moveEasingType']] },
 };
 function getShowMenuSetting() {
   return Object.keys(VIEW_SETTINGS).reduce((n, p) => {

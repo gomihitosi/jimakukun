@@ -26,3 +26,8 @@ Vue.component('svg-block', {
   </div>
 </div>`
 });
+
+// カラーピッカー
+const VueColor = window.VueColor
+const VueColorChrome = VueColor.Chrome;
+Vue.component('chrome-picker', VueColorChrome);

@@ -14,6 +14,7 @@
   <meta property="og:title" content="字幕クン">
   <meta property="og:description" content="音声認識をして字幕を出したり出さなかったり">
   <meta property="og:image" content="https://gomihitosi.github.io/jimakukun/card.png">
+  <style type="text/css" id="transition-style"></style>
 </head>
 
 <body>
@@ -34,7 +35,7 @@
             backgroundColor: settings[loginUser.id].backgroundColor,
             justifyContent: settings[loginUser.id].svgGroupJustify,
           }">
-          <transition-group tag="div" class="svg-transition" name="sub-fade" :style="{
+          <transition-group tag="div" class="svg-transition" name="svg-transition" :style="{
             alignItems: settings[loginUser.id].svgGroupAlign,
           }">
             <div class="svg-group" v-for="sub in subs" v-if="!sub.isDelete" :key="sub.key" :style="{
@@ -115,31 +116,55 @@
                   {{ SETTINGS[key].label }}
                 </div>
                 <div class="input-block" v-if="SETTINGS[key].type === TYPE.TEXT">
-                  <input class="input-text" type="text" v-model="settings[loginUser.id][key]">
+                  <input class="input-text" type="text" v-model="settings[loginUser.id][key]"
+                    @change="eventHandler(SETTINGS[key].change)">
                 </div>
                 <div class="input-block" v-if="SETTINGS[key].type === TYPE.NUMBER">
-                  <input class="input-text" type="text" v-model.number="settings[loginUser.id][key]">
+                  <input class="input-text" type="text" v-model.number="settings[loginUser.id][key]"
+                    @change="eventHandler(SETTINGS[key].change)">
                 </div>
                 <div class="input-block" v-if="SETTINGS[key].type === TYPE.RANGE">
-                  <input class="input-number-text" type="text" v-model.number="settings[loginUser.id][key]">
+                  <input class="input-number-text" type="text" v-model.number="settings[loginUser.id][key]"
+                    @change="eventHandler(SETTINGS[key].change)">
                   <input class="input-number-range" type="range" v-model.number="settings[loginUser.id][key]"
-                    :min="SETTINGS[key].min" :max="SETTINGS[key].max" :step="SETTINGS[key].step">
+                    :min="SETTINGS[key].min" :max="SETTINGS[key].max" :step="SETTINGS[key].step"
+                    @change="eventHandler(SETTINGS[key].change)">
                 </div>
                 <div class="input-block" v-if="SETTINGS[key].type === TYPE.CHECKBOX">
-                  <input class="input-checkbox" :id="key" type="checkbox" v-model.boolean="settings[loginUser.id][key]">
+                  <input class="input-checkbox" :id="key" type="checkbox" v-model.boolean="settings[loginUser.id][key]"
+                    @change="eventHandler(SETTINGS[key].change)">
                   <label class="input-for-label" :for="key">{{ SETTINGS[key].label }}</label>
                 </div>
                 <div class="input-block radio-block" v-if="SETTINGS[key].type === TYPE.RADIO">
                   <div v-for="(v, i) in SETTINGS[key].data">
                     <input class="input-radio" :id="key+i" :value="v.value" type="radio"
-                      v-model="settings[loginUser.id][key]">
+                      v-model="settings[loginUser.id][key]" @change="eventHandler(SETTINGS[key].change)">
                     <label class="input-for-label" :for="key+i">{{ v.text }}</label>
+                  </div>
+                </div>
+                <div class="input-block select-block" v-if="SETTINGS[key].type === TYPE.SELECT">
+                  <select class="input-select" v-model="settings[loginUser.id][key]"
+                    @change="eventHandler(SETTINGS[key].change)">
+                    <option v-for="v in SETTINGS[key].data" :value="v.value">
+                      {{ v.text }}
+                    </option>
+                  </select>
+                </div>
+                <div class="input-block" v-if="SETTINGS[key].type === TYPE.COLOR">
+                  <input class="input-text" type="text" v-model="settings[loginUser.id][key]"
+                    @change="eventHandler(SETTINGS[key].change)">
+                  <div class="color-box" :style="{backgroundColor: settings[loginUser.id][key]}"
+                    @click="colorPick(event, key)">
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <chrome-picker :value="colorPicker.value" v-if="colorPicker.isShow" @input="colorPickerUpdate"
+          :style="{top:colorPicker.top+'px', left:colorPicker.left+'px'}">
+        </chrome-picker>
+        <div class="vc-chrome-overlay" v-if="colorPicker.isShow" @click="colorPicker.isShow=false"></div>
         <div class="log-container">
           <div v-for="v in transcripts">[{{ getFormatedTimeStamp(v.timeStamp) }}] {{ v.text }}</div>
         </div>
@@ -154,6 +179,7 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue-color@2.7.0/dist/vue-color.min.js"></script>
   <script src="const.js"></script>
   <script src="component.js"></script>
   <script src="main.js"></script>

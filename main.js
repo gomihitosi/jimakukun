@@ -15,18 +15,41 @@ var vm = new Vue({
     archives: [],
     svgContainerWidth: 0,
     svgContainerHeight: 240,
+    transitionStyle: null,
+    colorPicker: { value: '', top: 0, left: 0, isShow: false, key: '' },
   },
   computed: {
     lastTrascriptData: function () {
       return this.transcripts.slice(-1)[0];
     },
+    transitionEnter: function () {
+      const d = this.settings[this.loginUser.id];
+      return `.svg-transition-enter { opacity: ${d.fadeTime > 0 ? 0 : 1}; transform: translate(${d.inPositionX}px, ${d.inPositionY}px); }`;
+    },
+    transitionLeaveTo: function () {
+      const d = this.settings[this.loginUser.id];
+      return `.svg-transition-leave-to { opacity: ${d.fadeTime > 0 ? 0 : 1}; transform: translate(${d.outPositionX}px, ${d.outPositionY}px); }`;
+    },
+    transitionMove: function () {
+      const d = this.settings[this.loginUser.id];
+      return `.svg-transition-move { transition: transform ${d.moveTime}s ${d.moveEasingType}; }`;
+    },
+    transitionActive: function () {
+      const d = this.settings[this.loginUser.id];
+      return `.svg-transition-enter-active,.svg-transition-leave-active { transition: opacity ${d.fadeTime}s ${d.fadeEasingType} 0s, transform ${d.moveTime}s ${d.moveEasingType} 0s; }`;
+    }
   },
   mounted() {
+    // リサイズ時処理
     const resizeFunc = () => {
       this.svgContainerWidth = window.innerWidth;
     };
     window.addEventListener('resize', resizeFunc);
     resizeFunc();
+
+    // トランジション用CSS
+    this.transitionStyle = [...document.styleSheets].find(v => v.ownerNode.id === 'transition-style');
+    this.updateCss();
 
     // TODO: 認識停止ボタン 仮実装
     addEventListener('keydown', (e) => {
@@ -79,6 +102,11 @@ var vm = new Vue({
         let target = this.getNotDeleteSameUserSubs(ID).reverse()[0];
         target.isFinal = true;
         target.end = Math.floor(e.timeStamp);
+
+        // 字幕消去時間が設定されている場合はイベントを設定
+        if (this.settings[ID].deleteTime > 0) {
+          window.setTimeout(() => { target.isDelete = true; }, this.settings[ID].deleteTime * 1000);
+        }
       }
     }
     this.recognition.onerror = (e) => {
@@ -94,6 +122,10 @@ var vm = new Vue({
     }
   },
   methods: {
+    eventHandler: function (methodName) {
+      if (!methodName) return;
+      this[methodName](arguments.lengnth > 1 ? arguments.slice(1) : undefined);
+    },
     start: function () {
       console.log('start');
       if (!this.recordStartDate) this.recordStartDate = new Date();
@@ -149,6 +181,24 @@ var vm = new Vue({
         }
       };
       addEventListener('keydown', func);
+    },
+    updateCss: function () {
+      // 設定されているCSSを削除した後、再付与
+      Object.keys([...Array(this.transitionStyle.cssRules.length)]).forEach(v => this.transitionStyle.deleteRule(0));
+      this.transitionStyle.insertRule(this.transitionActive);
+      this.transitionStyle.insertRule(this.transitionMove);
+      this.transitionStyle.insertRule(this.transitionLeaveTo);
+      this.transitionStyle.insertRule(this.transitionEnter);
+    },
+    colorPick: function (e, key) {
+      this.colorPicker.left = e.clientX;
+      this.colorPicker.top = e.clientY;
+      this.colorPicker.isShow = true;
+      this.colorPicker.key = key;
+      this.colorPicker.value = this.settings[this.loginUser.id][this.colorPicker.key];
+    },
+    colorPickerUpdate: function (e) {
+      this.settings[this.loginUser.id][this.colorPicker.key] = `rgba(${e.rgba.r}, ${e.rgba.g}, ${e.rgba.b}, ${e.rgba.a})`;
     },
   },
 })
