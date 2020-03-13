@@ -53,7 +53,7 @@
         </div>
         <div class="input-container" :style="{ height: 'calc(100% - 2.2em - ' + svgContainerHeight + 'px)' }">
           <div class="input-group">
-            <div class="input-label">デバッグ</div>
+            <div class="input-label">基本</div>
             <div class="input-row">
               <div class="input-col">
                 <div class="input-block">
@@ -82,7 +82,7 @@
               <div class="input-col">
                 <div class="input-block">
                   <div class="input-block">
-                    認識停止キー　<button @click="updateStopKey">ctrl + {{ settings[loginUser.id].isStopKey }}</button>
+                    字幕送りキー　<button @click="updateStopKey">ctrl + {{ settings[loginUser.id].isStopKey }}</button>
                   </div>
                 </div>
               </div>
@@ -101,6 +101,49 @@
                   <input v-model.number="svgContainerHeight" type="range" min="10" max="2000" step="1"
                     class="input-number-range">
                 </div>
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="input-col">
+                <div class="input-block">
+                  <input id="isVolumeCheck" type="checkbox" v-model.boolean="settings[loginUser.id].isVolumeCheck"
+                    class="input-checkbox" @change="isVolumeCheckUpdate">
+                  <label class="input-for-label" for="isVolumeCheck">音量がしきい値以下になったら字幕送り</label>
+                </div>
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="input-col">
+                <div class="input-block">
+                  音量調整用係数
+                </div>
+                <div class="input-block">
+                  <input type="text" v-model.number="settings[loginUser.id].volumeCoefficient"
+                    class="input-number-text">
+                  <input v-model.number="settings[loginUser.id].volumeCoefficient" type="range" min="1" max="300"
+                    step="1" class="input-number-range">
+                </div>
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="input-col">
+                <div class="input-block">
+                  判定時間(ms)
+                </div>
+                <div class="input-block">
+                  <input type="text" v-model.number="settings[loginUser.id].stopTime" class="input-number-text">
+                  <input v-model.number="settings[loginUser.id].stopTime" type="range" min="1" max="2500" step="1"
+                    class="input-number-range">
+                </div>
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="input-col volume-range-box">
+                <div class="volume-range-bg"
+                  :style="{ width : Math.floor(volume / 500 * settings[loginUser.id].volumeCoefficient) + '%'}">
+                </div>
+                <input v-model.number="settings[loginUser.id].stopVolumeThreshold" type="range" min="0" max="500"
+                  step="1" class="input-number-range">
               </div>
             </div>
           </div>

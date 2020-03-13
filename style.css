@@ -268,3 +268,17 @@ button {
   width: 100%;
   height: 100%
 }
+.volume-range-box {
+  height: 1.5em;
+  overflow: hidden;
+  position: relative;
+}
+.volume-range-box > input {
+  position: absolute;
+  top: 0.5em;
+}
+.volume-range-bg {
+  height: 100%;
+  position: absolute;
+  background-color: var(--accent-sub-color);
+}

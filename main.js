@@ -15,6 +15,10 @@ var vm = new Vue({
     svgContainerHeight: 240,
     transitionStyle: null,
     colorPicker: { value: '', top: 0, left: 0, isShow: false, key: '' },
+    mediaStream: null,
+    analyser: null,
+    volume: 0,
+    overStopVolume: false,
   },
   computed: {
     transitionEnter: function () {
@@ -31,7 +35,7 @@ var vm = new Vue({
     },
     transitionActive: function () {
       const d = this.settings[this.loginUser.id];
-      return `.svg-transition-enter-active,.svg-transition-leave-active { transition: opacity ${d.fadeTime}s ${d.fadeEasingType} 0s, transform ${d.moveTime}s ${d.moveEasingType} 0s; }`;
+      return `.svg-transition-enter-active,.svg-transition-leave-active { transition: opacity ${d.fadeTime}s ${d.fadeEasingType} 0s, transform ${d.outTime}s ${d.moveEasingType} 0s; }`;
     }
   },
   mounted() {
@@ -117,6 +121,31 @@ var vm = new Vue({
     }
   },
   methods: {
+    isVolumeCheckUpdate: function () {
+      if (this.settings[this.loginUser.id].isVolumeCheck) {
+        requestAnimationFrame(this.spectrumsCalc);
+      } else {
+        this.volume = 0;
+        this.overStopVolume = false;
+      }
+    },
+    spectrumsCalc: function () {
+      let spectrums = new Uint8Array(this.analyser.frequencyBinCount);
+      this.analyser.getByteFrequencyData(spectrums);
+      this.volume = Math.floor(sumByteFrequencyData(spectrums) / 100);
+
+      // ボリュームがしきい値を超えたらフラグを立て、それ以降にしきい値から下がったら認識を止める
+      if (!this.overStopVolume && this.settings[this.loginUser.id].stopVolumeThreshold < this.volume) {
+        this.overStopVolume = true;
+      } else if (this.overStopVolume && this.settings[this.loginUser.id].stopVolumeThreshold > this.volume) {
+        this.overStopVolume = false;
+        window.setTimeout(() => {
+          if (!this.overStopVolume) this.recognition.stop();
+        }, this.settings[this.loginUser.id].stopTime);
+      }
+
+      if (this.isRecording && this.settings[this.loginUser.id].isVolumeCheck) requestAnimationFrame(this.spectrumsCalc);
+    },
     eventHandler: function (methodName) {
       if (!methodName) return;
       this[methodName](arguments.lengnth > 1 ? arguments.slice(1) : undefined);
@@ -126,6 +155,24 @@ var vm = new Vue({
       if (!this.recordStartDate) this.recordStartDate = new Date();
       this.isRecording = true;
       this.recognition.start();
+
+      // 初回だけ音声取得用に実行
+      if (this.analyser === null) {
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        const context = new AudioContext();
+        this.analyser = context.createAnalyser();
+
+        this.analyser.fftSize = 2048;
+        this.analyser.smoothingTimeConstant = 0.8;
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(stream => {
+            this.mediaStream = context.createMediaStreamSource(stream);
+            this.mediaStream.connect(this.analyser);
+          })
+          .catch(err => console.error(`${err.name} ${err.message}`));
+      }
+      if (this.settings[this.loginUser.id].isVolumeCheck) requestAnimationFrame(this.spectrumsCalc);
     },
     stop: function () {
       console.log('stop');
@@ -148,14 +195,6 @@ var vm = new Vue({
       // TODO: 本当は揃えと寄せを見て判定
       let margin = this.settings[id].svgGroupMargin + 'px';
       return margin;
-    },
-    getFormatedTimeStamp: function (timeStamp) {
-      if (!this.recordStartDate) return timeStamp;
-
-      let d = new Date(this.recordStartDate.getTime() + Number(timeStamp));
-      const fill = (n) => ('0' + n).slice(-2);
-
-      return `${d.getFullYear()}/${fill(d.getMonth() + 1)}/${fill(d.getDate())} ${fill(d.getHours())}:${fill(d.getMinutes())}:${fill(d.getSeconds())}`
     },
     getNotDeleteSameUserSubs: function (id) {
       return this.subs.filter((v) => v.id === id && !v.isDelete);
