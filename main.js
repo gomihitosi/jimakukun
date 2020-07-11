@@ -75,6 +75,10 @@ var vm = new Vue({
       // 認識結果リストの中から終了フラグが立っていない物を対象に認識語句をすべて結合して取り扱う
       // 英単語を認識した際に半角スペースが挿入されるので空文字に置換
       let transcript = [...e.results].filter(v => !v.isFinal).map(v => v[0].transcript).join('').replace(/ /g, '');
+      this.settings[this.loginUser.id].filterMessage.split(',').forEach(v => {
+        if (!v) return;
+        transcript = transcript.replace(v, '');
+      });
       let targetSubs = this.getNotDeleteSameUserSubs(ID);
 
       if (targetSubs.length === 0) {
@@ -96,8 +100,11 @@ var vm = new Vue({
         // 認識終了時は全て結合された状態で [e.resultIndex][0] に結果が入っているのでそれを使う
         // 英単語を認識した際に半角スペースが挿入されるので空文字に置換
         let finishText = e.results[e.resultIndex][0].transcript.replace(/ /g, '');
+        this.settings[this.loginUser.id].filterMessage.split(',').forEach(v => {
+          if (!v) return;
+          finishText = finishText.replace(v, '');
+        });
         targetSubs[targetSubs.length - 1].text = finishText;
-        console.log(finishText);
         let target = this.getNotDeleteSameUserSubs(ID).reverse()[0];
         target.isFinal = true;
         target.end = Math.floor(e.timeStamp);

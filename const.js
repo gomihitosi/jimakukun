@@ -63,6 +63,9 @@ const SETTINGS = {
   volumeCoefficient: { value: 100, type: TYPE.RANGE, min: 1, max: 300, step: 1, label: '音量係数', description: '音量係数' },
   stopVolumeThreshold: { value: 15, type: TYPE.RANGE, min: 1, max: 500, step: 1, label: '音量しきい値', description: '音量しきい値' },
   stopTime: { value: 250, type: TYPE.RANGE, min: 1, max: 2500, step: 1, label: '停止時間(ms)', description: '停止時間(ms)' },
+  filterMessage: {
+    value: 'フィルター対象を,認識すると,空白に置換,カンマ区切りで,複数登録可', type: TYPE.TEXT, label: 'フィルター', description: 'フィルター'
+  },
 };
 function getDefaultSettings() {
   return Object.keys(SETTINGS).reduce((n, p) => {
@@ -125,6 +128,7 @@ const VIEW_SETTINGS = {
   textAnimeMenu: {
     title: '字幕アニメ', keys: [['fadeTime'], ['moveTime'], ['outTime'], ['inPositionX'], ['inPositionY'], ['outPositionX'], ['outPositionY'], ['fadeEasingType'], ['moveEasingType']]
   },
+  filterMenu: { title: 'フィルター', keys: [['filterMessage']], }
 };
 function getShowMenuSetting() {
   return Object.keys(VIEW_SETTINGS).reduce((n, p) => {
