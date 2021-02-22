@@ -23,20 +23,24 @@ var vm = new Vue({
   computed: {
     transitionEnter: function () {
       const d = this.settings[this.loginUser.id];
-      return `.svg-transition-enter { opacity: ${d.fadeTime > 0 ? 0 : 1}; transform: translate(${d.inPositionX}px, ${d.inPositionY}px); }`;
+      return `.svg-transition-enter { opacity: 0; transform: translate(${d.inPositionX}px, ${d.inPositionY}px); }`;
+    },
+    transitionEnterActive: function () {
+      const d = this.settings[this.loginUser.id];
+      return `.svg-transition-enter-active { transition: opacity ${d.fadeInTime}s ${d.fadeEasingType} 0s, transform ${d.inTime}s ${d.moveEasingType} 0s; }`;
+    },
+    transitionLeaveActive: function () {
+      const d = this.settings[this.loginUser.id];
+      return `.svg-transition-leave-active { position: absolute; transition: opacity ${d.fadeOutTime}s ${d.fadeEasingType} 0s, transform ${d.outTime}s ${d.moveEasingType} 0s; }`;
     },
     transitionLeaveTo: function () {
       const d = this.settings[this.loginUser.id];
-      return `.svg-transition-leave-to { opacity: ${d.fadeTime > 0 ? 0 : 1}; transform: translate(${d.outPositionX}px, ${d.outPositionY}px); }`;
+      return `.svg-transition-leave-to { opacity: 0; transform: translate(${d.outPositionX}px, ${d.outPositionY}px); }`;
     },
     transitionMove: function () {
       const d = this.settings[this.loginUser.id];
       return `.svg-transition-move { transition: transform ${d.moveTime}s ${d.moveEasingType}; }`;
     },
-    transitionActive: function () {
-      const d = this.settings[this.loginUser.id];
-      return `.svg-transition-enter-active,.svg-transition-leave-active { transition: opacity ${d.fadeTime}s ${d.fadeEasingType} 0s, transform ${d.outTime}s ${d.moveEasingType} 0s; }`;
-    }
   },
   mounted() {
     // リサイズ時処理
@@ -88,6 +92,7 @@ var vm = new Vue({
           text: transcript,
           isFinal: false,
           isDelete: false,
+          isEnterEnd: false,
           start: Math.floor(e.timeStamp),
           end: null
         };
@@ -120,7 +125,6 @@ var vm = new Vue({
     }
     this.recognition.onend = (e) => {
       if (!this.isRecording) return;
-      console.log('on end');
       this.start();
     }
     this.recognition.onnomatch = function (event) {
@@ -137,9 +141,10 @@ var vm = new Vue({
       }
     },
     spectrumsCalc: function () {
+      if(this.analyser === null) return;
       let spectrums = new Uint8Array(this.analyser.frequencyBinCount);
       this.analyser.getByteFrequencyData(spectrums);
-      this.volume = Math.floor(sumByteFrequencyData(spectrums) / 100);
+      this.volume = Math.floor(sumByteFrequencyData(spectrums) / 100 * this.settings[this.loginUser.id].volumeCoefficient);
 
       // ボリュームがしきい値を超えたらフラグを立て、それ以降にしきい値から下がったら認識を止める
       if (!this.overStopVolume && this.settings[this.loginUser.id].stopVolumeThreshold < this.volume) {
@@ -158,7 +163,6 @@ var vm = new Vue({
       this[methodName](arguments.lengnth > 1 ? arguments.slice(1) : undefined);
     },
     start: function () {
-      console.log('start');
       if (!this.recordStartDate) this.recordStartDate = new Date();
       this.isRecording = true;
       this.recognition.start();
@@ -182,7 +186,6 @@ var vm = new Vue({
       if (this.settings[this.loginUser.id].isVolumeCheck) requestAnimationFrame(this.spectrumsCalc);
     },
     stop: function () {
-      console.log('stop');
       this.isRecording = false;
       this.recognition.stop();
     },
@@ -192,7 +195,6 @@ var vm = new Vue({
     reset: function () {
       this.settings[this.loginUser.id].remove();
       this.settings[this.loginUser.id] = getSettingsData();
-      this.settings[this.loginUser.id].save();
     },
     changeInterim: function (id) {
       this.recognition.interimResults = this.settings[this.loginUser.id].isInterim;
@@ -226,10 +228,11 @@ var vm = new Vue({
     updateCss: function () {
       // 設定されているCSSを削除した後、再付与
       Object.keys([...Array(this.transitionStyle.cssRules.length)]).forEach(v => this.transitionStyle.deleteRule(0));
-      this.transitionStyle.insertRule(this.transitionActive);
-      this.transitionStyle.insertRule(this.transitionMove);
-      this.transitionStyle.insertRule(this.transitionLeaveTo);
       this.transitionStyle.insertRule(this.transitionEnter);
+      this.transitionStyle.insertRule(this.transitionEnterActive);
+      this.transitionStyle.insertRule(this.transitionLeaveActive);
+      this.transitionStyle.insertRule(this.transitionLeaveTo);
+      this.transitionStyle.insertRule(this.transitionMove);
     },
     colorPick: function (e, key) {
       this.colorPicker.left = e.clientX;

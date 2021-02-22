@@ -36,12 +36,12 @@
             backgroundColor: settings[loginUser.id].backgroundColor,
             justifyContent: settings[loginUser.id].svgGroupJustify,
           }">
-          <transition-group tag="div" class="svg-transition" name="svg-transition" :style="{
+          <transition-group tag="div" class="svg-transition" name="svg-transition" mode="out-in" appear :style="{
             alignItems: settings[loginUser.id].svgGroupAlign,
           }">
             <div class="svg-group" v-for="sub in subs" v-if="!sub.isDelete" :key="sub.key" :style="{
               maxWidth: settings[sub.id].svgGroupWidth + '%',
-              flexDirection: settings[sub.id].isBeforeColumn ? 'column' : 'row',
+              flexDirection: settings[sub.id].beforeColumnDirection,
               margin: getSvgGroupMargin(sub.id),
             }">
               <svg-block v-if="settings[sub.id].isBeforeText" :is-before="true" :text="settings[sub.id].beforeText"
@@ -54,17 +54,17 @@
         </div>
         <div class="input-container" :style="{ height: 'calc(100% - 2.2em - ' + svgContainerHeight + 'px)' }">
           <div class="input-group">
-            <div class="input-label">基本</div>
+            <div class="input-label">特殊設定</div>
             <div class="input-row">
               <div class="input-col">
-                <div class="input-block">
+                <div class="input-block" title="デバッグ用に文字に囲む罫線を表示">
                   <input id="isBorder" type="checkbox" v-model.boolean="settings[loginUser.id].isBorder"
                     class="input-checkbox">
                   <label class="input-for-label" for="isBorder">罫線表示</label>
                 </div>
               </div>
               <div class="input-col">
-                <div class="input-block">
+                <div class="input-block" title="文字認識が完了する前に字幕を表示するかを設定。暫定表示をしない場合のみ登場時アニメーションを動作">
                   <input id="isInterim" type="checkbox" v-model.boolean="settings[loginUser.id].isInterim"
                     @change="changeInterim(loginUser.id)" class="input-checkbox">
                   <label class="input-for-label" for="isInterim">認識暫定表示</label>
@@ -73,20 +73,24 @@
             </div>
             <div class="input-row">
               <div class="input-col">
-                <div class="input-block">
-                  <button id="save-btn" @click="save">設定保存</button>
-                  <button id="save-btn" @click="reset">設定初期化</button>
+                <div class="input-block" title="各種設定をブラウザに保存">
+                  設定　
+                  <button id="save-btn" @click="save">保存</button>
+                  <button id="save-btn" @click="reset">初期化(保存はしません)</button>
                 </div>
               </div>
             </div>
             <div class="input-row">
               <div class="input-col">
-                <div class="input-block">
-                  <div class="input-block">
-                    字幕送りキー　<button @click="updateStopKey">ctrl + {{ settings[loginUser.id].isStopKey }}</button>
-                  </div>
+                <div class="input-block" title="字幕認識を強制的に終了するキーを設定">
+                    字幕認識終了キー　<button @click="updateStopKey">ctrl + {{ settings[loginUser.id].isStopKey }}</button>
                 </div>
               </div>
+            </div>
+            <div class="input-row">
+                <div class="input-block" title="字幕を表示する領域サイズを設定。横幅、縦幅">
+                  字幕表示領域サイズ
+                </div>
             </div>
             <div class="input-row">
               <div class="input-col">
@@ -109,26 +113,26 @@
                 <div class="input-block">
                   <input id="isVolumeCheck" type="checkbox" v-model.boolean="settings[loginUser.id].isVolumeCheck"
                     class="input-checkbox" @change="isVolumeCheckUpdate">
-                  <label class="input-for-label" for="isVolumeCheck">音量がしきい値以下になったら字幕送り</label>
+                  <label class="input-for-label" for="isVolumeCheck" title="喋り続けながら細かく字幕を切りたい人向けの設定です。判定時間と音量しきい値で上手く設定してください">音量がしきい値以下になったら認識を一旦終了</label>
                 </div>
               </div>
             </div>
-            <div class="input-row">
+            <div class="input-row" v-if="settings[loginUser.id].isVolumeCheck">
               <div class="input-col">
-                <div class="input-block">
-                  音量調整用係数
+                <div class="input-block" title="音量が大きいまたは、小さい場合に使用する係数。バーが動かない場合は大きく。バーが動きすぎる場合は小さく設定すること">
+                  音量係数
                 </div>
                 <div class="input-block">
                   <input type="text" v-model.number="settings[loginUser.id].volumeCoefficient"
                     class="input-number-text">
-                  <input v-model.number="settings[loginUser.id].volumeCoefficient" type="range" min="1" max="300"
-                    step="1" class="input-number-range">
+                  <input v-model.number="settings[loginUser.id].volumeCoefficient" type="range" min="0.1" max="3"
+                    step="0.1" class="input-number-range">
                 </div>
               </div>
             </div>
-            <div class="input-row">
+            <div class="input-row" v-if="settings[loginUser.id].isVolumeCheck">
               <div class="input-col">
-                <div class="input-block">
+                <div class="input-block" title="音量しきい値以下になった後、認識を終了する判定を行う時間。ミリ秒">
                   判定時間(ms)
                 </div>
                 <div class="input-block">
@@ -138,13 +142,19 @@
                 </div>
               </div>
             </div>
-            <div class="input-row">
+            <div class="input-row" v-if="settings[loginUser.id].isVolumeCheck">
+              <div class="input-block" title="音量しきい値を設定。バーの動きは音量係数で動きを調整。しきい値以上になった場合、音量バーを赤色で表示">
+                音量バー（音量しきい値）
+              </div>
+            </div>
+            <div class="input-row" v-if="settings[loginUser.id].isVolumeCheck">
               <div class="input-col volume-range-box">
                 <div class="volume-range-bg"
-                  :style="{ width : Math.floor(volume / 500 * settings[loginUser.id].volumeCoefficient) + '%'}">
+                  :style="{ width : volume + 'px', backgroundColor : overStopVolume ? 'red' : '' }">
                 </div>
-                <input v-model.number="settings[loginUser.id].stopVolumeThreshold" type="range" min="0" max="500"
-                  step="1" class="input-number-range">
+                <!-- TODO: maxはピクセル数と合わせてごまかしました… -->
+                <input v-model.number="settings[loginUser.id].stopVolumeThreshold" type="range" min="0" max="320"
+                  step="0.1" class="input-number-range">
               </div>
             </div>
           </div>
@@ -155,38 +165,39 @@
                 style="cursor: pointer;">{{ showMenuSetting[key] ? '✕' : '▼' }}</span>
             </div>
             <div class="input-row" v-for="rows in setting.keys" v-if="showMenuSetting[key]">
-              <div class="input-col" v-for="key in rows">
-                <div class="input-block" v-if="SETTINGS[key].type !== TYPE.CHECKBOX">
+              <div class="input-col" v-for="key in rows"
+                v-if="SETTINGS[key].ifShowValue ? settings[loginUser.id][SETTINGS[key].ifShowValue] : SETTINGS[key].ifHideValue ? !settings[loginUser.id][SETTINGS[key].ifHideValue] : true">
+                <div class="input-block" v-if="SETTINGS[key].type !== TYPE.CHECKBOX" :title="SETTINGS[key].description">
                   {{ SETTINGS[key].label }}
                 </div>
-                <div class="input-block" v-if="SETTINGS[key].type === TYPE.TEXT">
+                <div class="input-block" v-if="SETTINGS[key].type === TYPE.TEXT" :title="SETTINGS[key].description">
                   <input class="input-text" type="text" v-model="settings[loginUser.id][key]"
                     @change="eventHandler(SETTINGS[key].change)">
                 </div>
-                <div class="input-block" v-if="SETTINGS[key].type === TYPE.NUMBER">
+                <div class="input-block" v-if="SETTINGS[key].type === TYPE.NUMBER" :title="SETTINGS[key].description">
                   <input class="input-text" type="text" v-model.number="settings[loginUser.id][key]"
                     @change="eventHandler(SETTINGS[key].change)">
                 </div>
-                <div class="input-block" v-if="SETTINGS[key].type === TYPE.RANGE">
+                <div class="input-block" v-if="SETTINGS[key].type === TYPE.RANGE" :title="SETTINGS[key].description">
                   <input class="input-number-text" type="text" v-model.number="settings[loginUser.id][key]"
                     @change="eventHandler(SETTINGS[key].change)">
                   <input class="input-number-range" type="range" v-model.number="settings[loginUser.id][key]"
                     :min="SETTINGS[key].min" :max="SETTINGS[key].max" :step="SETTINGS[key].step"
                     @change="eventHandler(SETTINGS[key].change)">
                 </div>
-                <div class="input-block" v-if="SETTINGS[key].type === TYPE.CHECKBOX">
+                <div class="input-block" v-if="SETTINGS[key].type === TYPE.CHECKBOX" :title="SETTINGS[key].description">
                   <input class="input-checkbox" :id="key" type="checkbox" v-model.boolean="settings[loginUser.id][key]"
                     @change="eventHandler(SETTINGS[key].change)">
                   <label class="input-for-label" :for="key">{{ SETTINGS[key].label }}</label>
                 </div>
-                <div class="input-block radio-block" v-if="SETTINGS[key].type === TYPE.RADIO">
+                <div class="input-block radio-block" v-if="SETTINGS[key].type === TYPE.RADIO" :title="SETTINGS[key].description">
                   <div v-for="(v, i) in SETTINGS[key].data">
                     <input class="input-radio" :id="key+i" :value="v.value" type="radio"
                       v-model="settings[loginUser.id][key]" @change="eventHandler(SETTINGS[key].change)">
                     <label class="input-for-label" :for="key+i">{{ v.text }}</label>
                   </div>
                 </div>
-                <div class="input-block select-block" v-if="SETTINGS[key].type === TYPE.SELECT">
+                <div class="input-block select-block" v-if="SETTINGS[key].type === TYPE.SELECT" :title="SETTINGS[key].description">
                   <select class="input-select" v-model="settings[loginUser.id][key]"
                     @change="eventHandler(SETTINGS[key].change)">
                     <option v-for="v in SETTINGS[key].data" :value="v.value">
@@ -194,7 +205,7 @@
                     </option>
                   </select>
                 </div>
-                <div class="input-block" v-if="SETTINGS[key].type === TYPE.COLOR">
+                <div class="input-block" v-if="SETTINGS[key].type === TYPE.COLOR" :title="SETTINGS[key].description">
                   <input class="input-text" type="text" v-model="settings[loginUser.id][key]"
                     @change="eventHandler(SETTINGS[key].change)">
                   <div class="color-box" :style="{backgroundColor: settings[loginUser.id][key]}"

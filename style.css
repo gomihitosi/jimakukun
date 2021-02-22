@@ -6,7 +6,7 @@
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.8);
-  color: #FFF;
+  color: #fff;
   z-index: 1000;
   display: flex;
   justify-content: center;
@@ -47,7 +47,7 @@ body {
 }
 .headder-container {
   padding: 0 0.5em;
-  display:flex;
+  display: flex;
   place-content: space-between;
   height: 32px;
 }
@@ -56,7 +56,7 @@ body {
   color: var(--bg-color);
   background-color: var(--text-sub-color);
   padding: 0 0.5em;
-  display:flex;
+  display: flex;
   place-content: space-between;
   height: 32px;
 }
@@ -109,9 +109,9 @@ a:hover {
   position: relative;
 }
 .svg-bg {
-  position: absolute;
-  width:100%;
-  height:100%;
+  display: flex;
+  width: fit-content;
+  height: fit-content;
 }
 .svg {
   position: absolute;
@@ -164,29 +164,29 @@ a:hover {
   display: flex;
   align-items: center;
 }
-input[type=text] {
+input[type="text"] {
   -webkit-appearance: none;
   border: none;
   border-bottom: 1px dotted var(--text-sub-color);
   background-color: transparent;
   padding: 0.2em;
 }
-input[type=text]:focus {
+input[type="text"]:focus {
   outline: 0;
   border-bottom: 1px solid var(--accent-color);
 }
-input[type=range] {
+input[type="range"] {
   -webkit-appearance: none;
   border-bottom: 1px solid var(--text-sub-color);
   background-color: transparent;
   height: 0px;
   width: 100%;
 }
-input[type=range]:focus {
+input[type="range"]:focus {
   outline: 0;
   border-bottom: 1px solid var(--accent-color);
 }
-input[type=range]::-webkit-slider-thumb {
+input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   cursor: pointer;
   width: 1em;
@@ -198,31 +198,31 @@ input[type=range]::-webkit-slider-thumb {
 .input-for-label {
   cursor: pointer;
 }
-input[type=checkbox] {
-  display:none;
+input[type="checkbox"] {
+  display: none;
 }
-input[type=checkbox] + label:before {
+input[type="checkbox"] + label:before {
   display: inline-block;
   content: "☐";
   margin-right: 0.5em;
 }
-input[type=checkbox]:checked + label:before {
+input[type="checkbox"]:checked + label:before {
   content: "☑";
 }
 .radio-block {
   width: 60%;
-  display: flex; 
+  display: flex;
   justify-content: space-evenly;
 }
-input[type=radio] {
-  display:none;
+input[type="radio"] {
+  display: none;
 }
-input[type=radio] + label:before {
+input[type="radio"] + label:before {
   display: inline-block;
   content: "○";
   margin-right: 0.5em;
 }
-input[type=radio]:checked + label:before {
+input[type="radio"]:checked + label:before {
   content: "●";
 }
 select {
@@ -254,7 +254,7 @@ button {
 }
 .color-box {
   width: 1em;
-  height:1em;
+  height: 1em;
   border: 1px solid var(--text-color);
   cursor: pointer;
 }
@@ -266,7 +266,7 @@ button {
   z-index: 4;
   position: fixed;
   width: 100%;
-  height: 100%
+  height: 100%;
 }
 .volume-range-box {
   height: 1.5em;
@@ -280,5 +280,5 @@ button {
 .volume-range-bg {
   height: 100%;
   position: absolute;
-  background-color: var(--accent-sub-color);
+  background-color: var(--text-color);
 }
